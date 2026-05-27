@@ -1,0 +1,14 @@
+data/
+
+outputs/*
+!outputs/compare_results.md
+!outputs/dataset_stats.md
+
+*.safetensors
+*.pt
+*.pth
+*.mp4
+*.avi
+
+__pycache__/
+*.pyc
