@@ -10,15 +10,22 @@ DEFAULT_QUESTION = "请结合交通监控画面和外部交通信息，判断当
 
 
 def format_context(context: dict[str, Any]) -> str:
-    lines = [
-        "外部结构化交通信息：",
-        f"- weather: {context['weather']}",
-        f"- traffic_flow: {context['traffic_flow']}",
-        f"- average_speed: {context['average_speed']} km/h",
-    ]
+    if not context:
+        return "外部结构化交通信息：未提供。\n"
+
+    lines = ["外部结构化交通信息："]
+    if "weather" in context:
+        lines.append(f"- weather: {context['weather']}")
+    if "traffic_flow" in context:
+        lines.append(f"- traffic_flow: {context['traffic_flow']}")
+    if "average_speed" in context:
+        lines.append(f"- average_speed: {context['average_speed']} km/h")
     if "vehicle_count" in context:
         lines.append(f"- vehicle_count: {context['vehicle_count']}")
-    lines.append(f"- event_info: {context['event_info']}")
+    if "event_info" in context:
+        lines.append(f"- event_info: {context['event_info']}")
+    else:
+        lines.append("- event_info: 未提供")
     return "\n".join(lines) + "\n"
 
 

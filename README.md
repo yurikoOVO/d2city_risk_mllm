@@ -112,12 +112,22 @@ python scripts/infer.py \
 ## 9. Base vs LoRA 对比
 
 ```bash
+python scripts/build_ablation_sets.py
+
 python scripts/compare_base_lora.py \
   --base_model_path /ssd/wyj/models/Qwen2-VL-2B-Instruct \
   --finetuned_model_path outputs/checkpoints/qwen2vl_risk_lora \
   --test_jsonl data/test.jsonl \
   --num_samples 8 \
   --output outputs/infer_results.jsonl
+
+python scripts/compare_base_lora.py \
+  --base_model_path /ssd/wyj/models/Qwen2-VL-2B-Instruct \
+  --finetuned_model_path outputs/checkpoints/qwen2vl_risk_lora \
+  --num_samples 8 \
+  --run_ablation
+
+python scripts/evaluate_outputs.py --input outputs/ablation_full_context.jsonl
 
 python scripts/results_to_markdown.py \
   --input outputs/infer_results.jsonl \
