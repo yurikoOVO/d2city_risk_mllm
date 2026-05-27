@@ -128,10 +128,23 @@ def sample_speed(flow: str, rng: random.Random) -> int:
     return rng.randint(50, 80)
 
 
-def decide_risk(weather: str, flow: str, speed: int, event_info: str) -> str:
+def decide_risk(
+    weather: str,
+    flow: str,
+    speed: int,
+    event_info: str,
+    vehicle_count: int,
+    rng: random.Random,
+) -> str:
     if event_info == "nearby accident":
+        if flow == "low" and vehicle_count <= 2 and speed > 60 and rng.random() < 0.65:
+            return "medium"
         return "high"
-    if event_info in {"road construction", "vehicle breakdown"}:
+    if event_info == "road construction":
+        if flow == "low" and speed > 65 and rng.random() < 0.35:
+            return "low"
+        return "medium"
+    if event_info == "vehicle breakdown":
         return "medium"
     if event_info == "large event ending nearby" and flow in {"medium", "high"}:
         return "high"
@@ -144,7 +157,14 @@ def decide_risk(weather: str, flow: str, speed: int, event_info: str) -> str:
     return "low"
 
 
-def decide_abnormal(flow: str, speed: int, event_info: str) -> str:
+def decide_abnormal(flow: str, speed: int, event_info: str, vehicle_count: int, rng: random.Random) -> str:
+    if event_info == "large event ending nearby" and vehicle_count <= 2 and speed > 60 and rng.random() < 0.45:
+        return "normal"
+    if event_info == "road construction" and flow == "low" and speed > 65 and rng.random() < 0.20:
+        return "normal"
+    if event_info == "vehicle breakdown" and flow == "low" and vehicle_count <= 2 and speed > 60 and rng.random() < 0.15:
+        return "normal"
+
     mapping = {
         "nearby accident": "accident_related_congestion",
         "road construction": "construction_impact",
@@ -153,7 +173,7 @@ def decide_abnormal(flow: str, speed: int, event_info: str) -> str:
     }
     if event_info in mapping:
         return mapping[event_info]
-    if flow == "high" and speed < 30:
+    if flow == "high" and speed < 20:
         return "severe_congestion"
     if flow == "high":
         return "congestion"
@@ -285,8 +305,8 @@ def build_samples(
             "vehicle_count": vehicle_count,
             "event_info": event_info,
         }
-        risk_level = decide_risk(weather, flow, speed, event_info)
-        abnormal_event = decide_abnormal(flow, speed, event_info)
+        risk_level = decide_risk(weather, flow, speed, event_info, vehicle_count, rng)
+        abnormal_event = decide_abnormal(flow, speed, event_info, vehicle_count, rng)
         samples.append(
             {
                 "image": image,

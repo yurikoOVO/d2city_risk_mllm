@@ -35,6 +35,29 @@ def cross_table(cross: dict[str, Counter]) -> list[str]:
     return lines
 
 
+def conditional_event_abnormal_table(rows: list[dict]) -> list[str]:
+    event_to_abnormal: dict[str, Counter] = defaultdict(Counter)
+    for row in rows:
+        event_info = row.get("context", {}).get("event_info", "unknown")
+        abnormal_event = row.get("abnormal_event", "unknown")
+        event_to_abnormal[event_info][abnormal_event] += 1
+
+    abnormal_keys = sorted({key for counts in event_to_abnormal.values() for key in counts})
+    lines = ["## Conditional Probability: Event Info -> Abnormal Event", ""]
+    if not abnormal_keys:
+        return lines + ["No samples.", ""]
+
+    lines.append("| event_info | total | " + " | ".join(abnormal_keys) + " |")
+    lines.append("|---|---:|" + "|".join(["---:"] * len(abnormal_keys)) + "|")
+    for event_info in sorted(event_to_abnormal):
+        counts = event_to_abnormal[event_info]
+        total = sum(counts.values())
+        probs = [f"{counts.get(key, 0) / total:.2%}" if total else "0.00%" for key in abnormal_keys]
+        lines.append(f"| {event_info} | {total} | " + " | ".join(probs) + " |")
+    lines.append("")
+    return lines
+
+
 def build_markdown(rows: list[dict]) -> str:
     total = len(rows)
     risk_counter = Counter(row.get("risk_level", "unknown") for row in rows)
@@ -86,6 +109,7 @@ def build_markdown(rows: list[dict]) -> str:
     lines.extend(count_table("Traffic Flow Distribution", flow_counter, total))
     lines.extend(count_table("Event Info Distribution", event_counter, total))
     lines.extend(cross_table(cross))
+    lines.extend(conditional_event_abnormal_table(rows))
     return "\n".join(lines)
 
 
